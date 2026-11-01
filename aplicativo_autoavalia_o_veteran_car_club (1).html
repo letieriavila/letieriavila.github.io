@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Autoavaliação de Veículos Antigos - Veteran Car Club</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        veteran: {
+                            50: '#fdf8f6',
+                            100: '#fbeee9',
+                            600: '#9b2c2c', /* Tom clássico bordô/vinho remetendo a carros clássicos */
+                            700: '#7f1d1d',
+                            800: '#651c1c',
+                            900: '#4a1515',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Google Fonts Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+    </style>
+</head>
+<body class="bg-gray-900 text-gray-100 h-full flex flex-col justify-between selection:bg-veteran-600 selection:text-white">
+
+    <!-- Header do Aplicativo -->
+    <header class="bg-gray-950 border-b border-gray-800 shadow-lg sticky top-0 z-50">
+        <div class="max-w-5xl mx-auto px-4 py-4 flex flex-col sm:flex-row justify-between items-center gap-3">
+            <div class="flex items-center space-x-3">
+                <div class="bg-amber-400 text-gray-950 p-2.5 rounded-xl shadow-lg border border-amber-300 font-black tracking-tighter flex items-center justify-center w-12 h-12 text-sm">
+                    VCCRG
+                </div>
+                <div>
+                    <h1 class="text-lg font-bold tracking-tight text-white flex items-center gap-2">
+                        Veteran Car Club do Rio Grande <span class="text-xs bg-veteran-700/80 text-amber-300 px-2 py-0.5 rounded-full uppercase tracking-wider font-semibold border border-amber-500/30">Autoavaliação FBVA</span>
+                    </h1>
+                    <p class="text-xs text-gray-400">Simulador oficial pré-vistoria para Certificado de Coleção (CVCOL)</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-2">
+                <button onclick="resetarFormulario()" class="text-xs bg-gray-800 hover:bg-gray-700 text-gray-300 font-medium px-3.5 py-2 rounded-lg transition border border-gray-700 shadow-sm flex items-center gap-1.5">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+                    Reiniciar Teste
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Conteúdo Principal -->
+    <main class="flex-grow max-w-4xl w-full mx-auto px-4 py-8">
+
+        <!-- Card de Introdução -->
+        <div id="intro-card" class="bg-gray-800/90 border border-gray-700/80 rounded-2xl p-6 sm:p-8 mb-8 shadow-xl backdrop-blur">
+            <div class="max-w-2xl">
+                <span class="text-amber-400 text-xs font-bold uppercase tracking-widest block mb-2">Evite surpresas e desgastes</span>
+                <h2 class="text-2xl sm:text-3xl font-extrabold text-white mb-3 tracking-tight">Faça o check-up do seu clássico antes de trazer ao Clube!</h2>
+                <p class="text-gray-300 text-sm sm:text-base leading-relaxed mb-6">
+                    Este aplicativo interativo guia você pelas rigorosas normas do Manual do Vistoriador da FBVA. Começaremos pelos **itens excludentes** (que reprovam imediatamente se modificados) e depois simularemos a **pontuação dos 100 pontos**.
+                </p>
+                <button onclick="iniciarAvaliacao()" class="bg-gradient-to-r from-veteran-700 to-veteran-600 hover:from-veteran-600 hover:to-veteran-500 text-white font-semibold px-6 py-3.5 rounded-xl shadow-lg transition duration-200 transform hover:-translate-y-0.5 flex items-center gap-2 border border-red-500/30">
+                    <span>Iniciar Autoavaliação</span>
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+                </button>
+            </div>
+        </div>
+
+        <!-- Seção Dinâmica de Avaliação (Oculta inicialmente) -->
+        <div id="app-container" class="hidden space-y-8">
+
+            <!-- Indicador de Abas / Passos -->
+            <div class="grid grid-cols-2 gap-3 bg-gray-950 p-2 rounded-2xl border border-gray-800">
+                <div id="tab-step-1" class="flex items-center justify-center space-x-2 py-3 px-4 rounded-xl font-semibold text-sm transition bg-veteran-700 text-white shadow">
+                    <span class="w-6 h-6 rounded-full bg-white/20 flex items-center justify-center text-xs">1</span>
+                    <span>Filtro Excludente</span>
+                </div>
+                <div id="tab-step-2" class="flex items-center justify-center space-x-2 py-3 px-4 rounded-xl font-medium text-sm text-gray-400 transition">
+                    <span class="w-6 h-6 rounded-full bg-gray-800 flex items-center justify-center text-xs">2</span>
+                    <span>Simulação de Pontuação</span>
+                </div>
+            </div>
+
+            <!-- PASSO 1: ITENS EXCLUDENTES -->
+            <div id="step-1-content" class="bg-gray-800/80 border border-gray-700 rounded-2xl p-6 sm:p-8 shadow-xl">
+                <div class="border-b border-gray-700 pb-4 mb-6">
+                    <h3 class="text-xl font-bold text-white flex items-center gap-2">
+                        <svg class="w-6 h-6 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+                        Passo 1: Verificação de Itens Excludentes
+                    </h3>
+                    <p class="text-xs sm:text-sm text-gray-400 mt-1">
+                        Responda com honestidade. Se houver qualquer alteração excludente sem comprovação de época conforme a FBVA, o veículo precisará de reversão antes de buscar o certificado.
+                    </p>
+                </div>
+
+                <div id="excludentes-list" class="space-y-6">
+                    <!-- Gerado via JavaScript -->
+                </div>
+
+                <div class="mt-8 pt-6 border-t border-gray-700 flex justify-end">
+                    <button onclick="irParaPasso2()" class="bg-veteran-700 hover:bg-veteran-600 text-white font-semibold px-6 py-3 rounded-xl transition shadow flex items-center gap-2">
+                        <span>Avançar para Pontuação</span>
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                    </button>
+                </div>
+            </div>
+
+            <!-- PASSO 2: SIMULAÇÃO DE PONTUAÇÃO -->
+            <div id="step-2-content" class="hidden bg-gray-800/80 border border-gray-700 rounded-2xl p-6 sm:p-8 shadow-xl">
+                <div class="border-b border-gray-700 pb-4 mb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                    <div>
+                        <h3 class="text-xl font-bold text-white flex items-center gap-2">
+                            <svg class="w-6 h-6 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
+                            Passo 2: Equipamentos Obrigatórios & Simulação de Pontuação
+                        </h3>
+                        <p class="text-xs sm:text-sm text-gray-400 mt-1">Verifique os itens de segurança iniciais obrigatórios e atribua a pontuação por categoria.</p>
+                    </div>
+                    <div class="bg-gray-900 border border-gray-700 px-4 py-2.5 rounded-xl text-center shadow-inner">
+                        <span class="text-xs text-gray-400 block uppercase tracking-wider font-medium">Nota Parcial</span>
+                        <span id="score-live" class="text-2xl font-black text-amber-400">100</span><span class="text-xs text-gray-500">/100</span>
+                    </div>
+                </div>
+
+                <!-- Bloco de Equipamentos Obrigatórios da FBVA -->
+                <div class="bg-gray-900/80 border border-amber-500/30 p-5 rounded-xl mb-6 space-y-3">
+                    <h4 class="font-bold text-amber-400 text-sm uppercase tracking-wider flex items-center gap-2">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>
+                        Equipamentos Obrigatórios (Manual da FBVA)
+                    </h4>
+                    <p class="text-xs text-gray-300">A falta de qualquer um destes itens impede imediatamente a avaliação do veículo. Confirme se possui:</p>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2.5 pt-2">
+                        <label class="flex items-center space-x-2 text-xs text-gray-200 cursor-pointer bg-gray-800/80 p-2.5 rounded-lg border border-gray-700">
+                            <input type="checkbox" checked class="obrigatorio-chk accent-amber-500 w-4 h-4">
+                            <span>1. Limpador de Para-brisa</span>
+                        </label>
+                        <label class="flex items-center space-x-2 text-xs text-gray-200 cursor-pointer bg-gray-800/80 p-2.5 rounded-lg border border-gray-700">
+                            <input type="checkbox" checked class="obrigatorio-chk accent-amber-500 w-4 h-4">
+                            <span>2. Freio de Estacionamento</span>
+                        </label>
+                        <label class="flex items-center space-x-2 text-xs text-gray-200 cursor-pointer bg-gray-800/80 p-2.5 rounded-lg border border-gray-700">
+                            <input type="checkbox" checked class="obrigatorio-chk accent-amber-500 w-4 h-4">
+                            <span>3. Rodas Sobressalentes (Estepe)</span>
+                        </label>
+                        <label class="flex items-center space-x-2 text-xs text-gray-200 cursor-pointer bg-gray-800/80 p-2.5 rounded-lg border border-gray-700">
+                            <input type="checkbox" checked class="obrigatorio-chk accent-amber-500 w-4 h-4">
+                            <span>4. Macaco e Chave de Roda</span>
+                        </label>
+                        <label class="flex items-center space-x-2 text-xs text-gray-200 cursor-pointer bg-gray-800/80 p-2.5 rounded-lg border border-gray-700">
+                            <input type="checkbox" checked class="obrigatorio-chk accent-amber-500 w-4 h-4">
+                            <span>5. Extintor de Incêndio (se aplicável)</span>
+                        </label>
+                        <label class="flex items-center space-x-2 text-xs text-gray-200 cursor-pointer bg-gray-800/80 p-2.5 rounded-lg border border-gray-700">
+                            <input type="checkbox" checked class="obrigatorio-chk accent-amber-500 w-4 h-4">
+                            <span>6. Triângulo de Segurança</span>
+                        </label>
+                        <label class="flex items-center space-x-2 text-xs text-gray-200 cursor-pointer bg-gray-800/80 p-2.5 rounded-lg border border-gray-700 sm:col-span-2 md:col-span-3">
+                            <input type="checkbox" checked class="obrigatorio-chk accent-amber-500 w-4 h-4">
+                            <span>7. Funcionamento total das luzes (Faróis, faroletes, ré, placas, setas)</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div id="pontuation-sections" class="space-y-8">
+                    <!-- Gerado via JavaScript -->
+                </div>
+
+                <div class="mt-8 pt-6 border-t border-gray-700 flex justify-between items-center">
+                    <button onclick="voltarParaPasso1()" class="bg-gray-700 hover:bg-gray-600 text-gray-200 font-medium px-5 py-2.5 rounded-xl transition text-sm">
+                        ← Voltar aos Excludentes
+                    </button>
+                    <button onclick="calcularResultadoFinal()" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-6 py-3 rounded-xl transition shadow-lg flex items-center gap-2">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        <span>Gerar Diagnóstico Final</span>
+                    </button>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Tela de Diagnóstico / Resultado Final (Oculta inicialmente) -->
+        <div id="result-container" class="hidden space-y-6">
+            <div id="result-card" class="bg-gray-800 border-2 rounded-2xl p-6 sm:p-10 shadow-2xl relative overflow-hidden">
+                <!-- Conteúdo do resultado preenchido via script -->
+            </div>
+            <div class="flex justify-center gap-4">
+                <button onclick="resetarFormulario()" class="bg-gray-700 hover:bg-gray-600 text-white font-semibold px-6 py-3 rounded-xl transition shadow">
+                    Fazer Nova Autoavaliação
+                </button>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Footer Simples -->
+    <footer class="bg-gray-950 border-t border-gray-800 py-4 text-center text-xs text-gray-500">
+        <p>Baseado no Manual do Vistoriador da Federação Brasileira de Veículos Antigos (FBVA). Desenvolvido para o Veteran Car Club do Rio Grande (VCCRG).</p>
+    </footer>
+
+    <!-- Script de lógica do simulador -->
+    <script>
+        // Dados dos Itens Excludentes com 5 exemplos detalhados cada
+        const excludentesData = [
+            {
+                id: 'exc_carroceria',
+                titulo: '1. Modificações na Carroceria ou Estrutura',
+                regra: 'Modificações de carroceria não são aceitas, exceto se feitas por encarroçadores de época homologados (Karmann Ghia, Dacon, etc.) ou com comprovação oficial.',
+                exemplos: [
+                    'Calhas de chuva plásticas coladas com fita dupla face no teto',
+                    'Fusca transformado caseiramente em conversível sem homologação',
+                    'Alargamentos em fibra de vidro modernos nos para-lamas',
+                    'Entradas de ar (scoops) ou aerofólios colados sem comprovação de época',
+                    'Cortes estruturais no painel corta-fogo ou assoalho sem padrão original'
+                ]
+            },
+            {
+                id: 'exc_pintura',
+                titulo: '2. Pintura Personalizada, Chamas ou Envelopamento',
+                regra: 'Pinturas com cores fora de época, envelopamento (vinil fosco/carbono) ou pinturas customizadas (chamas, caveiras, faixas) são excludentes.',
+                exemplos: [
+                    'Veículo totalmente envelopado com película vinílica fosca ou carbono',
+                    'Pintura customizada com desenhos de chamas (flame paint) ou caveiras',
+                    'Painel de instrumentos pintado com cores extravagantes e modernas',
+                    'Aplicação de faixas laterais esportivas modernas não pertencentes ao ano/modelo',
+                    'Pintura bicolor fora do padrão oferecido pelo fabricante na época'
+                ]
+            },
+            {
+                id: 'exc_suspensao',
+                titulo: '3. Rebaixamento ou Suspensão Regulável',
+                regra: 'Nenhum rebaixamento de suspensão é aceito para veículos originais. Suspensões reguláveis (rosca/ar) que não sejam originais são proibidas.',
+                exemplos: [
+                    'Suspensão a ar instalada com mangueiras e manômetros aparentes',
+                    'Feixes de mola arqueados invertidos ou cortados deixando o carro baixo',
+                    'Amortecedores preparados tipo "rosca" que alteram a altura original',
+                    'Pontes de suspensão dianteira encurtadas sem padrão técnico de época',
+                    'Batentes estourados com rodas raspando visivelmente nos para-lamas'
+                ]
+            },
+            {
+                id: 'exc_motor',
+                titulo: '4. Motor de Épocas Diferentes ou Outras Marcas',
+                regra: 'Motores de marcas diferentes ou cilindradas totalmente incompatíveis com o modelo são excludentes.',
+                exemplos: [
+                    'Motor moderno de injeção direta adaptado em um clássico pré-guerra',
+                    'Motor de outra montadora (ex: motor AP da VW em um Ford Corcel)',
+                    'Bloco de motor com numeração lixada ou adulterada sem procedência',
+                    'Motores muito potentes de outra categoria sem homologação especial',
+                    'Filtros de ar esportivos cônicos modernos de alta vazão em motores originais'
+                ]
+            },
+            {
+                id: 'exc_iluminacao',
+                titulo: '5. Faróis de LED ou Tecnologia Moderna',
+                regra: 'Proibido lâmpadas de LED modernas, faróis selados modificados em veículos pré-guerra ou tecnologias de iluminação fora de época.',
+                exemplos: [
+                    'Lâmpadas de LED ultra-brancas em faróis principais originais',
+                    'Faróis de milha auxiliares modernos com carcaça de plástico cromado atual',
+                    'Fitas de LED diurnas (DRL) coladas na grade ou para-choque',
+                    'Lanternas traseiras com lâmpadas piscantes estroboscópicas',
+                    'Faróis selados (sealed-beam) modernos em veículos legítimos pré-guerra'
+                ]
+            },
+            {
+                id: 'exc_bancos',
+                titulo: '6. Bancos Esportivos em Carros de Bancos Inteiriços',
+                regra: 'Bancos individuais ou concha esportiva em veículos que saíram de fábrica com bancos inteiriços são excludentes (salvo acessório de época provado).',
+                exemplos: [
+                    'Bancos concha revestidos em corino com abas laterais de competição',
+                    'Bancos dianteiros modernos reclináveis retirados de veículos atuais',
+                    'Encostos de cabeça avulsos adaptados em bancos que não os possuíam',
+                    'Bancos traseiros esportivos adaptados em picapes de cabine dupla',
+                    'Ausência de trilhos originais com adaptações caseiras de solda no assoalho'
+                ]
+            },
+            {
+                id: 'exc_rodas',
+                titulo: '7. Rodas Esportivas Modernas Inadequadas',
+                regra: 'Rodas fora de padrão são excludentes. Tolerado alteração máxima de aro e tala de até 1" apenas por escassez extrema de pneus originais.',
+                exemplos: [
+                    'Rodas de liga leve aro 17 ou 18 com perfil de pneu ultra baixo',
+                    'Calotas plásticas universais coladas sobre rodas de ferro pretas',
+                    'Rodas esportivas raiadas modernas de fabricação atual não compatíveis',
+                    'Pintura das rodas em cores fluorescentes ou chamativas modernas',
+                    'Uso de espaçadores de roda (bolacha) excessivos para fora do para-lama'
+                ]
+            },
+            {
+                id: 'exc_gnv',
+                titulo: '8. Adaptação de GNV ou Injeção em Carros Carburados',
+                regra: 'Adaptação de kit gás (GNV) é proibida. A conversão de veículos originalmente carburados para injeção eletrônica também é item excludente.',
+                exemplos: [
+                    'Cilindro de GNV visível e fixado de forma improvisada no porta-malas',
+                    'Bocal de abastecimento de GNV instalado na lateral ou para-lama',
+                    'Coletor de admissão retrabalhado para receber bicos de injeção eletrônica',
+                    'Módulos de injeção programáveis (FuelTech / Pandoo) aparentes no cofre',
+                    'Fiação de sensores eletrônicos moderna sem acabamento em carro carburado'
+                ]
+            }
+        ];
+
+        // Dados de Pontuação Baseados nas Planilhas da FBVA com exemplos de perdas de pontos e zeramento
+        const pontuacaoSeccoes = [
+            {
+                categoria: 'Mecânica (Total: 31 pontos)',
+                max: 31,
+                itens: [
+                    { id: 'mec_motor', nome: 'Bloco do Motor, Coletores, Cor e Aspecto Geral', maxPts: 10, exemploPerda: 'Ex: Motor com vazamento visível perde pontos. ATENÇÃO: Cor do motor diferente da original zera completamente os 2 pontos da cor.' },
+                    { id: 'mec_alimentacao', nome: 'Sistema de Alimentação (Carburador/Injeção e Filtro de Ar)', maxPts: 3, exemploPerda: 'Ex: Filtro de ar esportivo cromado ou cor incorreta zera a pontuação específica do componente (perda de até 1 pt).' },
+                    { id: 'mec_ignicao', nome: 'Sistema de Ignição (Distribuidor e Cabos de Vela)', maxPts: 3, exemploPerda: 'Ex: Cabos de vela coloridos aceitos com perda parcial. Sistema de ignição totalmente não original zera os pontos do distribuidor.' },
+                    { id: 'mec_transmissao', nome: 'Caixa de Câmbio e Diferencial Originais', maxPts: 2, exemploPerda: 'Ex: Troca de câmbio aceita com DESCONTO TOTAL DOS 2 PONTOS se instalada com discrição (ex: caixa de 5 marchas).' },
+                    { id: 'mec_suspensao', nome: 'Amortecedores e Elementos Essenciais da Suspensão', maxPts: 2, exemploPerda: 'Ex: Substituição de amortecedores de "bracinho" por "garrafa" moderna ZERA OS 2 PONTOS deste quesito.' },
+                    { id: 'mec_rodas', nome: 'Rodas Originais (ou tolerância de 1" de tala/aro e pintura)', maxPts: 5, exemploPerda: 'Ex: Rodas esportivas de época perdem todos os 5 pontos. Rodas com ferrugem ou pintura descascada perdem pontos parciais.' },
+                    { id: 'mec_pneus', nome: 'Pneus (Medida correta e tipo radial/diagonal adequado)', maxPts: 2, exemploPerda: 'Ex: Substituição de diagonal por radial aceita com perda parcial de pontos. Medidas totalmente incorretas zeram o item.' },
+                    { id: 'mec_freios', nome: 'Sistema de Freios (Dianteiros, traseiros e servo-freio)', maxPts: 4, exemploPerda: 'Ex: Adaptação de freio a disco dianteiro tolerada com pontuação ZERO apenas nas rodas dianteiras (perda de 2 pts).' }
+                ]
+            },
+            {
+                categoria: 'Parte Elétrica (Total: 10 pontos)',
+                max: 10,
+                itens: [
+                    { id: 'elt_voltagem', nome: 'Voltagem Original do Veículo', maxPts: 2, exemploPerda: 'Ex: Se a voltagem original foi modificada, a pontuação é ZERADA integralmente (perda de 2 pts).' },
+                    { id: 'elt_instalacao', nome: 'Instalação Elétrica (Organização, fiação adequada sem gambiarras)', maxPts: 4, exemploPerda: 'Ex: Fiação desorganizada ou com emendas com fita isolante comum perde pontos proporcionalmente ao estado.' },
+                    { id: 'elt_gerador', nome: 'Dínamo ou Alternador Original', maxPts: 2, exemploPerda: 'Ex: Substituição de dínamo por alternador adaptado de outro veículo ZERA INTEGRALMENTE os 2 pontos, independentemente da voltagem.' },
+                    { id: 'elt_bobina', nome: 'Bobina / Ignição Original (sem peças coloridas/performance)', maxPts: 2, exemploPerda: 'Ex: Bobinas especiais de alta performance ou coloridas têm a pontuação ZERADA integralmente (perda de 2 pts).' }
+                ]
+            },
+            {
+                categoria: 'Parte Externa do Veículo (Total: 38 pontos)',
+                max: 38,
+                itens: [
+                    { id: 'ext_carroceria', nome: 'Carroceria, Alinhamento e Acabamento de Portas/Capôs', maxPts: 8, exemploPerda: 'Ex: Veículos grosseiramente lanternados ou com avarias significativas são considerados excludentes. Pequenos desalinhamentos perdem pontos parciais.' },
+                    { id: 'ext_pintura', nome: 'Pintura (Tonalidade correta, faixas/filetes e aspecto geral)', maxPts: 8, exemploPerda: 'Ex: Cores totalmente diferentes da original chegam a ZERAR a pontuação da pintura conforme a discrepância.' },
+                    { id: 'ext_cromados', nome: 'Cromados, Frisos e Adornos (Sem ferrugem ou descascados)', maxPts: 5, exemploPerda: 'Ex: Partes muito enferrujadas ou cromados descascados disfarçados com tinta metálica tornam o item impeditivo/zerado.' },
+                    { id: 'ext_parachoques', nome: 'Para-choques (Alinhamento e aspecto cromado/pintura)', maxPts: 5, exemploPerda: 'Ex: Ausência de garras, protetores ou para-choques incorretos geram perda total ou parcial dos 5 pontos.' },
+                    { id: 'ext_calotas', nome: 'Calotas Originais ou Acessórios de Época Comprovados', maxPts: 3, exemploPerda: 'Ex: Calotas amassadas, oxidadas ou ausentes reduzem ou zeram os 3 pontos do quesito.' },
+                    { id: 'ext_farois', nome: 'Faróis e Lanternas (Originalidade e estado de conservação)', maxPts: 5, exemploPerda: 'Ex: Faróis com lentes plásticas paralelas ou películas adesivas alteradoras zeram/penalizam os pontos.' },
+                    { id: 'ext_vidros', nome: 'Vidros (Integridade, sem trincas ou riscos profundos)', maxPts: 2, exemploPerda: 'Ex: Vidros muito riscados por palhetas ou trincados perdem pontuação parcial ou total.' },
+                    { id: 'ext_outros', nome: 'Capotas / Teto de Vinil / Caçambas / Retrovisor direito', maxPts: 2, exemploPerda: 'Ex: Retrovisor do lado direito instalado em veículo que não o possuía originalmente ZERA OS PONTOS do item (mas é aceito por segurança).' }
+                ]
+            },
+            {
+                categoria: 'Parte Interna do Veículo (Total: 21 pontos)',
+                max: 21,
+                itens: [
+                    { id: 'int_painel', nome: 'Painel, Instrumentos de Origem e Rádio correto', maxPts: 6, exemploPerda: 'Ex: Rádio moderno com CD Player ou toca-fitas fora de época instalado no lugar do rádio original ZERA o ponto específico do rádio (perda de 1 pt).' },
+                    { id: 'int_estofamento', nome: 'Estofamento, Forração de Portas e Teto (Desenho e material)', maxPts: 6, exemploPerda: 'Ex: Materiais de forração sem comprovação de época ou desenho totalmente fora do original ZERAM todos os quesitos de estofamento.' },
+                    { id: 'int_volante', nome: 'Volante e Aro de Buzina Originais ou Época', maxPts: 3, exemploPerda: 'Ex: Volante esportivo moderno sem comprovação de época ZERA integralmente os 3 pontos.' },
+                    { id: 'int_assoalho', nome: 'Revestimento do Assoalho e Carpetes', maxPts: 2, exemploPerda: 'Ex: Carpetes com cor ou material totalmente destoantes do padrão original perdem a pontuação total (2 pts).' },
+                    { id: 'int_macanetas', nome: 'Maçanetas, Manivelas e Comandos', maxPts: 2, exemploPerda: 'Ex: Instalação de vidros elétricos modernos não originais/não comprovados de época ZERA integralmente os 2 pontos.' },
+                    { id: 'int_portamalas', nome: 'Porta-malas (Revestimento correto e organizado)', maxPts: 2, exemploPerda: 'Ex: Ausência de revestimento ou caixas acústicas de som modificadas zeram os 2 pontos do porta-malas.' }
+                ]
+            }
+        ];
+
+        // Inicializar a interface ao carregar
+        document.addEventListener('DOMContentLoaded', () => {
+            renderizarExcludentes();
+            renderizarPontuation();
+        });
+
+        function iniciarAvaliacao() {
+            document.getElementById('intro-card').classList.add('hidden');
+            document.getElementById('app-container').classList.remove('hidden');
+        }
+
+        function renderizarExcludentes() {
+            const container = document.getElementById('excludentes-list');
+            container.innerHTML = excludentesData.map((item, index) => `
+                <div class="bg-gray-900/60 border border-gray-700/70 p-5 rounded-xl space-y-3">
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+                        <h4 class="font-bold text-white text-base">${item.titulo}</h4>
+                        <div class="flex items-center space-x-3 bg-gray-800 px-3 py-1.5 rounded-lg border border-gray-700">
+                            <label class="text-xs text-gray-300 font-medium">Possui esta alteração?</label>
+                            <div class="flex items-center space-x-3">
+                                <label class="flex items-center space-x-1 text-xs text-red-400 font-semibold cursor-pointer">
+                                    <input type="radio" name="${item.id}" value="sim" onchange="verificarExcludentes()" class="text-red-600 focus:ring-red-500">
+                                    <span>Sim</span>
+                                </label>
+                                <label class="flex items-center space-x-1 text-xs text-emerald-400 font-semibold cursor-pointer">
+                                    <input type="radio" name="${item.id}" value="nao" checked onchange="verificarExcludentes()" class="text-emerald-600 focus:ring-emerald-500">
+                                    <span>Não</span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    <p class="text-xs text-gray-300 leading-relaxed"><strong class="text-amber-400">Regra FBVA:</strong> ${item.regra}</p>
+                    <div class="bg-red-950/30 border border-red-900/40 p-3 rounded-lg space-y-1">
+                        <span class="text-xs font-bold text-red-300 block">Exemplos do que NÃO pode ser visto na vistoria:</span>
+                        <ul class="list-disc list-inside text-xs text-red-200 space-y-0.5">
+                            ${item.exemplos.map(ex => `<li>${ex}</li>`).join('')}
+                        </ul>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function renderizarPontuation() {
+            const container = document.getElementById('pontuation-sections');
+            container.innerHTML = pontuacaoSeccoes.map((sec, sIdx) => `
+                <div class="bg-gray-900/60 border border-gray-700/70 p-5 rounded-xl space-y-4">
+                    <h4 class="font-bold text-amber-400 text-lg border-b border-gray-800 pb-2 flex justify-between items-center">
+                        <span>${sec.categoria}</span>
+                    </h4>
+                    <div class="grid grid-cols-1 gap-4">
+                        ${sec.itens.map((item, iIdx) => `
+                            <div class="bg-gray-800/60 p-3.5 rounded-lg border border-gray-700/50 space-y-2">
+                                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+                                    <div class="text-sm text-gray-200 font-medium flex-1">
+                                        ${item.nome} 
+                                        <span class="text-xs text-gray-400 block font-normal">(Máx: ${item.maxPts} pts)</span>
+                                    </div>
+                                    <div class="flex items-center space-x-2 w-full sm:w-auto justify-end">
+                                        <input type="range" id="${item.id}" min="0" max="${item.maxPts}" step="0.5" value="${item.maxPts}" oninput="atualizarPontosLive()" class="w-32 accent-amber-500 cursor-pointer">
+                                        <span id="${item.id}_val" class="text-sm font-bold text-amber-400 w-10 text-right">${item.maxPts}</span>
+                                    </div>
+                                </div>
+                                <p class="text-xs text-gray-400 italic bg-gray-900/50 p-2 rounded border border-gray-800/60">${item.exemploPerda}</p>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function atualizarPontosLive() {
+            let total = 0;
+            pontuacaoSeccoes.forEach(sec => {
+                sec.itens.forEach(item => {
+                    const slider = document.getElementById(item.id);
+                    const valSpan = document.getElementById(item.id + '_val');
+                    const val = parseFloat(slider.value);
+                    valSpan.textContent = val % 1 === 0 ? val : val.toFixed(1);
+                    total += val;
+                });
+            });
+            document.getElementById('score-live').textContent = total % 1 === 0 ? total : total.toFixed(1);
+        }
+
+        function verificarExcludentes() {
+            // Função de suporte
+        }
+
+        function irParaPasso2() {
+            let possuiExcludente = false;
+            excludentesData.forEach(item => {
+                const radios = document.getElementsByName(item.id);
+                if (radios[0].checked) { // 'sim'
+                    possuiExcludente = true;
+                }
+            });
+
+            if (possuiExcludente) {
+                alert("Atenção: Você selecionou um ou mais itens excludentes. O veículo possui restrições severas segundo o Manual da FBVA. Vamos avançar para a pontuação, mas lembre-se que estes itens impedem o certificado.");
+            }
+
+            document.getElementById('step-1-content').classList.add('hidden');
+            document.getElementById('step-2-content').classList.remove('hidden');
+            
+            document.getElementById('tab-step-1').className = "flex items-center justify-center space-x-2 py-3 px-4 rounded-xl font-medium text-sm text-gray-400 transition bg-gray-950 border border-gray-800";
+            document.getElementById('tab-step-2').className = "flex items-center justify-center space-x-2 py-3 px-4 rounded-xl font-semibold text-sm transition bg-veteran-700 text-white shadow";
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function voltarParaPasso1() {
+            document.getElementById('step-2-content').classList.add('hidden');
+            document.getElementById('step-1-content').classList.remove('hidden');
+            
+            document.getElementById('tab-step-2').className = "flex items-center justify-center space-x-2 py-3 px-4 rounded-xl font-medium text-sm text-gray-400 transition bg-gray-950 border border-gray-800";
+            document.getElementById('tab-step-1').className = "flex items-center justify-center space-x-2 py-3 px-4 rounded-xl font-semibold text-sm transition bg-veteran-700 text-white shadow";
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function calcularResultadoFinal() {
+            let possuiExcludente = false;
+            let excludentesMarcados = [];
+            excludentesData.forEach(item => {
+                const radios = document.getElementsByName(item.id);
+                if (radios[0].checked) {
+                    possuiExcludente = true;
+                    excludentesMarcados.push(item.titulo);
+                }
+            });
+
+            // Verificar itens obrigatórios
+            const chksObrigatorios = document.querySelectorAll('.obrigatorio-chk');
+            let faltaObrigatorio = false;
+            chksObrigatorios.forEach(chk => {
+                if (!chk.checked) faltaObrigatorio = true;
+            });
+
+            let pontuacaoTotal = 0;
+            pontuacaoSeccoes.forEach(sec => {
+                sec.itens.forEach(item => {
+                    pontuacaoTotal += parseFloat(document.getElementById(item.id).value);
+                });
+            });
+
+            document.getElementById('app-container').classList.add('hidden');
+            const resultContainer = document.getElementById('result-container');
+            const resultCard = document.getElementById('result-card');
+            resultContainer.classList.remove('hidden');
+
+            let aprovado = !possuiExcludente && !faltaObrigatorio && pontuacaoTotal >= 80;
+
+            let borderColor = '';
+            let tituloStatus = '';
+            let descricaoStatus = '';
+
+            if (faltaObrigatorio) {
+                borderColor = 'border-red-600 bg-red-950/20';
+                tituloStatus = 'REPROVADO POR FALTA DE ITENS OBRIGATÓRIOS';
+                descricaoStatus = 'O Manual da FBVA determina que a ausência de qualquer item obrigatório de segurança (como macaco, chave de roda, triângulo ou extintor) impede imediatamente a emissão do certificado.';
+            } else if (possuiExcludente) {
+                borderColor = 'border-red-600 bg-red-950/20';
+                tituloStatus = 'REPROVADO POR ITENS EXCLUDENTES';
+                descricaoStatus = 'O seu veículo apresenta modificações consideradas excludentes pelas normas da FBVA. O Certificado de Veículo de Coleção (CVCOL) não poderá ser emitido nestas condições.';
+            } else if (pontuacaoTotal < 80) {
+                borderColor = 'border-amber-600 bg-amber-950/20';
+                tituloStatus = 'PONTUAÇÃO ABAIXO DO MÍNIMO (80 PONTOS)';
+                descricaoStatus = `Seu veículo somou ${pontuacaoTotal} pontos. Para obter o Certificado de Coleção, a norma exige no mínimo 80 pontos. É necessário realizar melhorias de originalidade.`;
+            } else {
+                borderColor = 'border-emerald-600 bg-emerald-950/20';
+                tituloStatus = 'APROVADO NA PRÉ-VISTORIA!';
+                descricaoStatus = `Parabéns! Seu clássico obteve ${pontuacaoTotal} pontos e passou sem itens excludentes. O veículo está pronto e apto para agendar a vistoria oficial no Veteran Car Club do Rio Grande!`;
+            }
+
+            resultCard.className = `bg-gray-800 border-2 ${borderColor} rounded-2xl p-6 sm:p-10 shadow-2xl relative overflow-hidden`;
+
+            resultCard.innerHTML = `
+                <div class="max-w-3xl mx-auto space-y-6 text-center">
+                    <div class="inline-block px-4 py-1.5 rounded-full text-xs font-black uppercase tracking-widest ${aprovado ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30' : 'bg-red-500/20 text-red-300 border border-red-500/30'}">
+                        ${tituloStatus}
+                    </div>
+                    <h2 class="text-3xl sm:text-4xl font-extrabold text-white">Resultado da Autoavaliação</h2>
+                    <p class="text-gray-300 text-sm sm:text-base leading-relaxed">${descricaoStatus}</p>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 my-6 text-left">
+                        <div class="bg-gray-900/80 p-5 rounded-xl border border-gray-700">
+                            <span class="text-xs text-gray-400 block uppercase tracking-wider">Pontuação Obtida</span>
+                            <span class="text-3xl font-black text-amber-400">${pontuacaoTotal} <span class="text-sm font-normal text-gray-500">/ 100 pts</span></span>
+                            <span class="text-xs text-gray-400 mt-2 block">Mínimo necessário: 80 pontos</span>
+                        </div>
+                        <div class="bg-gray-900/80 p-5 rounded-xl border border-gray-700">
+                            <span class="text-xs text-gray-400 block uppercase tracking-wider">Status dos Excludentes</span>
+                            <span class="text-xl font-bold ${excludentesMarcados.length > 0 ? 'text-red-400' : 'text-emerald-400'}">
+                                ${excludentesMarcados.length > 0 ? excludentesMarcados.length + ' item(ns) restrito(s)' : 'Nenhum item excludente'}
+                            </span>
+                            <span class="text-xs text-gray-400 mt-2 block">Filtro de carroceria, motor e acessórios</span>
+                        </div>
+                    </div>
+
+                    ${excludentesMarcados.length > 0 ? `
+                        <div class="bg-red-950/40 border border-red-900/50 p-4 rounded-xl text-left space-y-2">
+                            <h4 class="text-xs font-bold text-red-400 uppercase tracking-wider">Itens apontados como excludentes:</h4>
+                            <ul class="list-disc list-inside text-xs text-red-200 space-y-1">
+                                ${excludentesMarcados.map(item => `<li>${item}</li>`).join('')}
+                            </ul>
+                        </div>
+                    ` : ''}
+
+                    <div class="bg-amber-950/30 border border-amber-900/50 p-4 rounded-xl text-xs text-amber-200 flex items-center justify-between gap-4 text-left">
+                        <div>
+                            <strong class="font-bold block mb-0.5 text-amber-300">Precisa de suporte ou oficinas parceiras?</strong>
+                            <span>O Veteran Car Club do Rio Grande possui parcerias com especialistas em funilaria, estética e peças para auxiliar na adequação do seu clássico.</span>
+                        </div>
+                        <button onclick="alert('Funcionalidade de contato com parceiros ativada! Em breve entraremos em contato.')" class="bg-amber-600 hover:bg-amber-500 text-white font-bold px-4 py-2.5 rounded-lg transition shrink-0 shadow">
+                            Ver Parceiros
+                        </button>
+                    </div>
+                </div>
+            `;
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function resetarFormulario() {
+            document.getElementById('result-container').classList.add('hidden');
+            document.getElementById('app-container').classList.add('hidden');
+            document.getElementById('intro-card').classList.remove('hidden');
+            
+            renderizarExcludentes();
+            renderizarPontuation();
+            // Marcar todos os obrigatórios por padrão
+            document.querySelectorAll('.obrigatorio-chk').forEach(chk => chk.checked = true);
+
+            document.getElementById('step-2-content').classList.add('hidden');
+            document.getElementById('step-1-content').classList.remove('hidden');
+            document.getElementById('tab-step-1').className = "flex items-center justify-center space-x-2 py-3 px-4 rounded-xl font-semibold text-sm transition bg-veteran-700 text-white shadow";
+            document.getElementById('tab-step-2').className = "flex items-center justify-center space-x-2 py-3 px-4 rounded-xl font-medium text-sm text-gray-400 transition bg-gray-950 border border-gray-800";
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+    </script>
+</body>
+</html>
